@@ -24,6 +24,7 @@
 using UnityEngine;
 using UnityEditor;
 using Moments;
+using MinAttribute = Moments.MinAttribute;
 
 namespace MomentsEditor
 {

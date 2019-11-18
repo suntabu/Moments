@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Moments;
 using Moments.Encoder;
 using UnityObject = UnityEngine.Object;
-
+using Min = Moments.MinAttribute;
 namespace Gif2
 {
     [AddComponentMenu("Miscellaneous/Moments Gif Recorder")]
@@ -25,7 +25,7 @@ namespace Gif2
         // These fields aren't public, the user shouldn't modify them directly as they can't break
         // everything if not used correctly. Use Setup() instead.
 
-        [SerializeField, Min(8)] int m_Width = 320;
+        [SerializeField, Moments.Min(8)] int m_Width = 320;
 
         [SerializeField, Min(8)] int m_Height = 200;
 
