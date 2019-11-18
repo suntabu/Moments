@@ -115,7 +115,6 @@ namespace Gif2
                     string filepath = SaveFolder + "/" + filename + ".gif";
                     mWorker = new CoroutineWorker(encoder, filepath);
                 }
-
                 return mWorker;
             }
         }

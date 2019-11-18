@@ -138,9 +138,15 @@ namespace Moments.Encoder
                 SetSize(frame.Width, frame.Height);
 
             m_CurrentFrame = frame;
+
+            float t = Time.realtimeSinceStartup;
             GetImagePixels();
+            Debug.LogError("GetImagePixels  " +(Time.realtimeSinceStartup - t));
+            t = Time.realtimeSinceStartup;
             AnalyzePixels();
 //			yield return null;
+            Debug.LogError("AnalyzePixels  " +(Time.realtimeSinceStartup - t));
+            t = Time.realtimeSinceStartup;
 
             if (m_IsFirstFrame)
             {
@@ -153,10 +159,14 @@ namespace Moments.Encoder
 
             WriteGraphicCtrlExt();
             WriteImageDesc();
+            Debug.LogError("WriteImageDesc  " +(Time.realtimeSinceStartup - t));
+            t = Time.realtimeSinceStartup;
             if (!m_IsFirstFrame)
                 WritePalette();
 
             WritePixels();
+            Debug.LogError("WritePixels  " +(Time.realtimeSinceStartup - t));
+            t = Time.realtimeSinceStartup;
             m_IsFirstFrame = false;
             yield return new WaitForEndOfFrame();
         }
@@ -275,8 +285,8 @@ namespace Moments.Encoder
             int nPix = len / 3;
             m_IndexedPixels = new byte[nPix];
             NeuQuant nq = new NeuQuant(m_Pixels, len, (int) m_SampleInterval);
+            
             m_ColorTab = nq.Process(); // Create reduced palette
-
             // Map image pixels to new palette
             int k = 0;
             for (int i = 0; i < nPix; i++)
@@ -285,7 +295,6 @@ namespace Moments.Encoder
                 m_UsedEntry[index] = true;
                 m_IndexedPixels[i] = (byte) index;
             }
-
             m_Pixels = null;
             m_ColorDepth = 8;
             m_PaletteSize = 7;
