@@ -76,10 +76,10 @@ namespace Gif2
             {
                 while (m_Frames.Count > 0)
                 {
-                    Debug.LogWarning(Time.realtimeSinceStartup - StartTime);
+//                    Debug.LogWarning(Time.realtimeSinceStartup - StartTime);
                     mCurrentEncodeFrame++;
                     yield return Worker.AddFrame(m_Frames.Dequeue());
-                    Debug.LogWarning(Time.realtimeSinceStartup - StartTime);
+//                    Debug.LogWarning(Time.realtimeSinceStartup - StartTime);
                 }
 
                 yield return null;
