@@ -88,6 +88,11 @@ namespace Gif2
             Debug.LogError(Time.realtimeSinceStartup - StartTime);
 
             Worker.Finish();
+
+            if (OnFileSaved != null)
+            {
+                OnFileSaved(Worker.m_FilePath);
+            }
         }
 
 
@@ -141,22 +146,10 @@ namespace Gif2
         #region Delegates
 
         /// <summary>
-        /// Called when the pre-processing step has finished.
-        /// </summary>
-        public Action OnPreProcessingDone;
-
-        /// <summary>
-        /// Called by each worker thread every time a frame is processed during the save process.
-        /// The first parameter holds the worker ID and the second one a value in range [0;1] for
-        /// the actual progress. This callback is probably not thread-safe, use at your own risks.
-        /// </summary>
-        public Action<int, float> OnFileSaveProgress;
-
-        /// <summary>
         /// Called once a gif file has been saved. The first parameter will hold the worker ID and
         /// the second one the absolute file path.
         /// </summary>
-        public Action<int, string> OnFileSaved;
+        public Action<string> OnFileSaved;
 
         #endregion
 
@@ -252,6 +245,11 @@ namespace Gif2
             if (m_Frames == null)
                 return;
 
+            Flush(m_TempRt);
+            Flush(m_TempTex);
+
+            m_TempRt = null;
+            m_TempTex = null;
 
             m_Frames.Clear();
         }
