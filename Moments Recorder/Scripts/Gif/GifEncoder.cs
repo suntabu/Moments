@@ -7,6 +7,7 @@
  */
 
 using System;
+using System.Collections;
 using System.IO;
 using UnityEngine;
 
@@ -116,6 +117,48 @@ namespace Moments.Encoder
 
 			WritePixels();
 			m_IsFirstFrame = false;
+		}
+		
+		/// <summary>
+		/// Adds next GIF frame. The frame is not written immediately, but is actually deferred
+		/// until the next frame is received so that timing data can be inserted. Invoking
+		/// <code>Finish()</code> flushes all frames.
+		/// </summary>
+		/// <param name="frame">GifFrame containing frame to write.</param>
+		public IEnumerator CoAddFrame(GifFrame frame)
+		{
+			if ((frame == null))
+				throw new ArgumentNullException("Can't add a null frame to the gif.");
+
+			if (!m_HasStarted)
+				throw new InvalidOperationException("Call Start() before adding frames to the gif.");
+
+			// Use first frame's size
+			if (!m_IsSizeSet)
+				SetSize(frame.Width, frame.Height);
+
+			m_CurrentFrame = frame;
+			GetImagePixels();
+			AnalyzePixels();
+//			yield return null;
+			
+			if (m_IsFirstFrame)
+			{
+				WriteLSD();
+				WritePalette();
+
+				if (m_Repeat >= 0)
+					WriteNetscapeExt();
+			}
+
+			WriteGraphicCtrlExt();
+			WriteImageDesc();
+			if (!m_IsFirstFrame)
+				WritePalette();
+
+			WritePixels();
+			m_IsFirstFrame = false;
+			yield return new WaitForEndOfFrame();
 		}
 
 		/// <summary>
