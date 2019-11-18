@@ -21,13 +21,14 @@
  *    distribution.
  */
 
+using Gif2;
 using UnityEngine;
 using UnityEditor;
 using Moments;
 
 namespace MomentsEditor
 {
-	[CustomEditor(typeof(Recorder))]
+	[CustomEditor(typeof(GifRecorder))]
 	public sealed class GifRecorderEditor : Editor
 	{
 		SerializedProperty m_AutoAspect;
@@ -37,7 +38,6 @@ namespace MomentsEditor
 		SerializedProperty m_Repeat;
 		SerializedProperty m_Quality;
 		SerializedProperty m_BufferSize;
-		SerializedProperty m_WorkerPriority;
 
 		void OnEnable()
 		{
@@ -48,12 +48,11 @@ namespace MomentsEditor
 			m_Repeat = serializedObject.FindProperty("m_Repeat");
 			m_Quality = serializedObject.FindProperty("m_Quality");
 			m_BufferSize = serializedObject.FindProperty("m_BufferSize");
-			m_WorkerPriority = serializedObject.FindProperty("WorkerPriority");
 		}
 
 		public override void OnInspectorGUI()
 		{
-			Recorder recorder = (Recorder)target;
+			GifRecorder recorder = (GifRecorder)target;
 
 			EditorGUILayout.HelpBox("This inspector is only used to tweak default values for the component. To change values at runtime, use the Setup() method.", MessageType.Info);
 
@@ -72,7 +71,6 @@ namespace MomentsEditor
 			else
 				EditorGUILayout.LabelField(new GUIContent("Height", "Output gif height in pixels."), new GUIContent(m_Height.intValue.ToString()));
 
-			EditorGUILayout.PropertyField(m_WorkerPriority, new GUIContent("Worker Thread Priority", "Thread priority to use when processing frames to a gif file."));
 			EditorGUILayout.PropertyField(m_Quality, new GUIContent("Compression Quality", "Lower values mean better quality but slightly longer processing time. 15 is generally a good middleground value."));
 			EditorGUILayout.PropertyField(m_Repeat, new GUIContent("Repeat", "-1 to disable, 0 to loop indefinitely, >0 to loop a set number of time."));
 			EditorGUILayout.PropertyField(m_FramePerSecond, new GUIContent("Frames Per Second", "The number of frames per second the gif will run at."));
