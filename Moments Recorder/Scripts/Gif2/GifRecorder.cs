@@ -84,8 +84,9 @@ namespace Gif2
 
                 yield return null;
             }
+
             Debug.LogError(Time.realtimeSinceStartup - StartTime);
-            
+
             Worker.Finish();
         }
 
@@ -168,7 +169,6 @@ namespace Gif2
         ReflectionUtils<GifRecorder> m_ReflectionUtils;
         private RenderTexture m_TempRt;
         private Texture2D m_TempTex;
-        private Rect RecordArea;
         private int mCurrentRecordFrame, mCurrentEncodeFrame;
 
         #endregion
@@ -299,11 +299,6 @@ namespace Gif2
 
                 Graphics.Blit(source, m_TempRt);
 
-
-                RenderTexture.active = m_TempRt;
-
-                TempTex.ReadPixels(RecordArea, 0, 0);
-                TempTex.Apply();
                 RenderTexture.active = null;
                 GifFrame frame = ToGifFrame(m_TempRt, TempTex);
                 m_Frames.Enqueue(frame);
@@ -314,8 +309,9 @@ namespace Gif2
                     State = RecorderState.Recorded;
                 }
             }
+            else
 
-            Graphics.Blit(source, destination);
+                Graphics.Blit(source, destination);
         }
 
         #endregion
