@@ -92,10 +92,7 @@ namespace Gif3
                         m_FilePath = filepath,
                         m_Frames = m_Frames,
                         m_MaxFrameCount = m_MaxFrameCount,
-                        m_OnFileSaved = t =>
-                        {
-                            Debug.LogError(t);
-                        }
+                        m_OnFileSaved = t => { Debug.LogError(t); }
                     };
                 }
 
@@ -269,7 +266,7 @@ namespace Gif3
 
                 if (m_TempRt == null)
                 {
-                    m_TempRt = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32)
+                    m_TempRt = new RenderTexture((int)mRtWidth, (int)mRtHeight, 0, RenderTextureFormat.ARGB32)
                     {
                         wrapMode = TextureWrapMode.Clamp,
                         filterMode = FilterMode.Bilinear,
@@ -334,6 +331,36 @@ namespace Gif3
             m_Height = Mathf.RoundToInt(m_Width / GetComponent<Camera>().aspect);
         }
 
+        public Vector2 ComputeWidth(Vector2 size)
+        {
+            if (!m_AutoAspect)
+                return new Vector2(m_Width, m_Height);
+            float aspect = size.x / size.y;
+            m_Width = Mathf.RoundToInt(m_Height * aspect);
+            return new Vector2(m_Width, m_Height);
+        }
+
+        private float mRecordX, mRecordY, mRtWidth, mRtHeight;
+
+        public void SetRecordPosition(float x, float y)
+        {
+            mRecordX = x;
+            mRecordY = y;
+        }
+
+        public void SetRenderTextureSize(float width, float height)
+        {
+            mRtWidth = width;
+            mRtHeight = height;
+        }
+
+        private string filePath;
+        public void SetFilePath(string filepath)
+        {
+            this.filePath = filepath;
+        }
+
+
         void Flush(UnityObject obj)
         {
 #if UNITY_EDITOR
@@ -382,7 +409,7 @@ namespace Gif3
         GifFrame ToGifFrame(RenderTexture source, Texture2D target)
         {
             RenderTexture.active = source;
-            target.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
+            target.ReadPixels(new Rect(mRecordX, mRecordY, source.width, source.height), 0, 0);
 //            target.Apply();
             RenderTexture.active = null;
 
