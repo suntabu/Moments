@@ -129,7 +129,7 @@ namespace Gif3
         /// Called once a gif file has been saved. The first parameter will hold the worker ID and
         /// the second one the absolute file path.
         /// </summary>
-        public Action<string> OnFileSaved;
+        public Action OnFileSaved;
 
         #endregion
 
@@ -295,6 +295,8 @@ namespace Gif3
                 if (mCurrentRecordFrame > m_MaxFrameCount)
                 {
                     State = RecorderState.Recorded;
+
+                    OnFileSaved();
                 }
             }
             else
@@ -327,6 +329,26 @@ namespace Gif3
 #endif
             }
         }
+        
+        public void Init(float duration)
+        {
+            State = RecorderState.None;
+            m_MaxFrameCount = Mathf.RoundToInt(duration * m_FramePerSecond);
+            m_TimePerFrame = 1f / m_FramePerSecond;
+            m_Time = 0f;
+
+            // Make sure the output folder is set or use the default one
+            if (string.IsNullOrEmpty(SaveFolder))
+            {
+#if UNITY_EDITOR
+                SaveFolder =
+                    Application
+                        .persistentDataPath; // Defaults to the asset folder in the editor for faster access to the gif file
+#else
+				SaveFolder = Application.persistentDataPath;
+#endif
+            }
+        }
 
         // Automatically computes height from the current aspect ratio if auto aspect is set to true
         public void ComputeHeight()
@@ -339,8 +361,6 @@ namespace Gif3
 
         public Vector2 ComputeWidth(Vector2 size)
         {
-            if (!m_AutoAspect)
-                return new Vector2(m_Width, m_Height);
             float aspect = size.x / size.y;
             m_Width = Mathf.RoundToInt(m_Height * aspect);
             return new Vector2(m_Width, m_Height);
@@ -360,11 +380,9 @@ namespace Gif3
             mRtHeight = height;
         }
 
-        private string filePath;
-
-        public void SetFilePath(string filepath)
+        public void SetFilePath(string filename)
         {
-            this.filePath = filepath;
+            this.filename = filename;
         }
 
 
