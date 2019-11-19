@@ -162,8 +162,7 @@ namespace Gif3
         /// 256 colors allowed by the GIF specification). Lower values (minimum = 1) produce better
         /// colors, but slow processing significantly. Higher values will speed up the quantization
         /// pass at the cost of lower image quality (maximum = 100).</param>
-        public void Setup(bool autoAspect, int width, int height, int fps, float bufferSize, int repeat,
-            int quality)
+        public void Setup(bool autoAspect, int width, int height, int fps, float bufferSize, int repeat, int quality, bool needInit)
         {
             if (State == RecorderState.Recording)
             {
@@ -186,8 +185,11 @@ namespace Gif3
             m_ReflectionUtils.ConstrainMin(x => x.m_Repeat, repeat);
             m_ReflectionUtils.ConstrainRange(x => x.m_Quality, quality);
 
-            // Ready to go
-            Init();
+            if (needInit)
+            {
+                // Ready to go
+                Init();
+            }
         }
 
 
