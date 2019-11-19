@@ -23,10 +23,11 @@ namespace Moments.Encoder
         protected FileStream m_FileStream;
 
         protected GifFrame m_CurrentFrame;
-        protected byte[] m_Pixels; // BGR byte array from frame
+        protected byte[] m_Pixels, m_PrevPixels; // BGR byte array from frame
         protected byte[] m_IndexedPixels; // Converted frame indexed to palette
         protected int m_ColorDepth; // Number of bit planes
         protected byte[] m_ColorTab; // RGB palette
+        protected NeuQuant nq;
         protected bool[] m_UsedEntry = new bool[256]; // Active palette entries
         protected int m_PaletteSize = 7; // Color table size (bits-1)
         protected int m_DisposalCode = -1; // Disposal code (-1 = use default)
@@ -141,11 +142,11 @@ namespace Moments.Encoder
 
             float t = Time.realtimeSinceStartup;
             GetImagePixels();
-            Debug.LogError("GetImagePixels  " +(Time.realtimeSinceStartup - t));
+//            Debug.LogError("GetImagePixels  " + (Time.realtimeSinceStartup - t));
             t = Time.realtimeSinceStartup;
             AnalyzePixels();
 //			yield return null;
-            Debug.LogError("AnalyzePixels  " +(Time.realtimeSinceStartup - t));
+//            Debug.LogError("AnalyzePixels  " + (Time.realtimeSinceStartup - t));
             t = Time.realtimeSinceStartup;
 
             if (m_IsFirstFrame)
@@ -159,13 +160,13 @@ namespace Moments.Encoder
 
             WriteGraphicCtrlExt();
             WriteImageDesc();
-            Debug.LogError("WriteImageDesc  " +(Time.realtimeSinceStartup - t));
+//            Debug.LogError("WriteImageDesc  " + (Time.realtimeSinceStartup - t));
             t = Time.realtimeSinceStartup;
             if (!m_IsFirstFrame)
                 WritePalette();
 
             WritePixels();
-            Debug.LogError("WritePixels  " +(Time.realtimeSinceStartup - t));
+//            Debug.LogError("WritePixels  " + (Time.realtimeSinceStartup - t));
             t = Time.realtimeSinceStartup;
             m_IsFirstFrame = false;
             yield return new WaitForEndOfFrame();
@@ -284,9 +285,37 @@ namespace Moments.Encoder
             int len = m_Pixels.Length;
             int nPix = len / 3;
             m_IndexedPixels = new byte[nPix];
-            NeuQuant nq = new NeuQuant(m_Pixels, len, (int) m_SampleInterval);
+            bool reuseTab = false;
+
+            if (m_PrevPixels != null)
+            {
+                var delta = 0;
+                for (int i = 0; i < len; i += 3)
+                {
+                    if (m_Pixels[i] != m_PrevPixels[i] ||
+                        m_Pixels[i + 1] != m_PrevPixels[i + 1] ||
+                        m_Pixels[i + 2] != m_PrevPixels[i + 2])
+                    {
+                        delta++;
+                    }
+                }
+
+                var match = 100 - Mathf.Ceil(delta / nPix * 100);
+                reuseTab = match >= 90;
+
+                Debug.LogError("--->" + reuseTab);
+            }
+
+            this.m_PrevPixels = m_Pixels;
+
+            if (!reuseTab)
+            {
+                nq = new NeuQuant(m_Pixels, len, (int) m_SampleInterval);
+
+                m_ColorTab = nq.Process(); // Create reduced palette
+            }
+
             
-            m_ColorTab = nq.Process(); // Create reduced palette
             // Map image pixels to new palette
             int k = 0;
             for (int i = 0; i < nPix; i++)
@@ -295,6 +324,7 @@ namespace Moments.Encoder
                 m_UsedEntry[index] = true;
                 m_IndexedPixels[i] = (byte) index;
             }
+
             m_Pixels = null;
             m_ColorDepth = 8;
             m_PaletteSize = 7;

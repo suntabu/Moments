@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Moments;
 using Moments.Encoder;
 using UnityObject = UnityEngine.Object;
 using Min = Moments.MinAttribute;
@@ -143,7 +142,7 @@ namespace Gif3
         float m_Time;
         float m_TimePerFrame;
         Queue<GifFrame> m_Frames;
-        ReflectionUtils<GifRecorder2> m_ReflectionUtils;
+        Moments.ReflectionUtils<GifRecorder2> m_ReflectionUtils;
         private RenderTexture m_TempRt;
         private Texture2D m_TempTex;
         private int mCurrentRecordFrame, mCurrentEncodeFrame;
@@ -244,7 +243,7 @@ namespace Gif3
 
         void Awake()
         {
-            m_ReflectionUtils = new ReflectionUtils<GifRecorder2>(this);
+            m_ReflectionUtils = new Moments.ReflectionUtils<GifRecorder2>(this);
             m_Frames = new Queue<GifFrame>();
             Init();
         }
