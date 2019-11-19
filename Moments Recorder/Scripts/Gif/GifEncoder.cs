@@ -302,7 +302,7 @@ namespace Moments.Encoder
                 }
 
                 var match = 100 - Mathf.Ceil(delta / nPix * 100);
-                reuseTab = match >= 90;
+                reuseTab = match >= 98;
             }
 
 
@@ -322,11 +322,11 @@ namespace Moments.Encoder
             for (int i = 0; i < nPix; i++)
             {
                 int index = 0;
-                if (m_PrevPixels != null && 
+                if (reuseTab&&
+                    m_PrevPixels != null && 
                     m_PrevPixels[3 * i + 0] == m_Pixels[3 * i + 0] &&
                     m_PrevPixels[3 * i + 1] == m_Pixels[3 * i + 1] &&
-                    m_PrevPixels[3 * i + 2] == m_Pixels[3 * i + 2] &&
-                    reuseTab)
+                    m_PrevPixels[3 * i + 2] == m_Pixels[3 * i + 2] )
                 {
                     index = m_PrevIndices[i]; 
                 }
