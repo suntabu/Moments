@@ -24,6 +24,7 @@ namespace Moments.Encoder
 
         protected GifFrame m_CurrentFrame;
         protected byte[] m_Pixels, m_PrevPixels; // BGR byte array from frame
+        protected int[] m_PrevIndices;
         protected byte[] m_IndexedPixels; // Converted frame indexed to palette
         protected int m_ColorDepth; // Number of bit planes
         protected byte[] m_ColorTab; // RGB palette
@@ -302,11 +303,8 @@ namespace Moments.Encoder
 
                 var match = 100 - Mathf.Ceil(delta / nPix * 100);
                 reuseTab = match >= 90;
-
-                Debug.LogError("--->" + reuseTab);
             }
 
-            this.m_PrevPixels = m_Pixels;
 
             if (!reuseTab)
             {
@@ -315,16 +313,35 @@ namespace Moments.Encoder
                 m_ColorTab = nq.Process(); // Create reduced palette
             }
 
-            
+            if (m_PrevIndices == null)
+            {
+                m_PrevIndices = new int[nPix];
+            }
+
             // Map image pixels to new palette
-            int k = 0;
             for (int i = 0; i < nPix; i++)
             {
-                int index = nq.Map(m_Pixels[k++] & 0xff, m_Pixels[k++] & 0xff, m_Pixels[k++] & 0xff);
+                int index = 0;
+                if (m_PrevPixels != null && 
+                    m_PrevPixels[3 * i + 0] == m_Pixels[3 * i + 0] &&
+                    m_PrevPixels[3 * i + 1] == m_Pixels[3 * i + 1] &&
+                    m_PrevPixels[3 * i + 2] == m_Pixels[3 * i + 2] &&
+                    reuseTab)
+                {
+                    index = m_PrevIndices[i]; 
+                }
+                else
+                {
+                    index = nq.Map(m_Pixels[3 * i + 0] & 0xff, m_Pixels[3 * i + 1] & 0xff, m_Pixels[3 * i + 2] & 0xff);
+                    m_PrevIndices[i] = index;
+                }
+
+
                 m_UsedEntry[index] = true;
                 m_IndexedPixels[i] = (byte) index;
             }
 
+            this.m_PrevPixels = m_Pixels;
             m_Pixels = null;
             m_ColorDepth = 8;
             m_PaletteSize = 7;

@@ -266,7 +266,13 @@ namespace Gif3
 
                 if (m_TempRt == null)
                 {
-                    m_TempRt = new RenderTexture((int)mRtWidth, (int)mRtHeight, 0, RenderTextureFormat.ARGB32)
+                    if (mRtWidth == 0 || mRtHeight == 0)
+                    {
+                        mRtWidth = m_Width;
+                        mRtHeight = m_Height;
+                    }
+
+                    m_TempRt = new RenderTexture((int) mRtWidth, (int) mRtHeight, 0, RenderTextureFormat.ARGB32)
                     {
                         wrapMode = TextureWrapMode.Clamp,
                         filterMode = FilterMode.Bilinear,
@@ -355,6 +361,7 @@ namespace Gif3
         }
 
         private string filePath;
+
         public void SetFilePath(string filepath)
         {
             this.filePath = filepath;
