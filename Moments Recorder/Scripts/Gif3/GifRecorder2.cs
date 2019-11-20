@@ -92,13 +92,23 @@ namespace Gif3
                         m_FilePath = filepath,
                         m_Frames = m_Frames,
                         m_MaxFrameCount = m_MaxFrameCount,
-                        m_OnFileSaved = t => { Debug.LogError(t); }
+                        m_OnFileSaved = t =>
+                        {
+                            mActions.Enqueue(() =>
+                            {
+                                if (OnFileSaved != null)
+                                {
+                                    OnFileSaved();
+                                }
+                            });
+                        }
                     };
                 }
 
                 return mWorker;
             }
         }
+
 
 
         /// <summary>
@@ -143,7 +153,7 @@ namespace Gif3
         private RenderTexture m_TempRt;
         private Texture2D m_TempTex;
         private int mCurrentRecordFrame, mCurrentEncodeFrame;
-
+        private Queue<Action> mActions = new Queue<Action>();
         #endregion
 
         #region Public API
@@ -246,6 +256,15 @@ namespace Gif3
             m_Frames = new Queue<GifFrame>();
             Init();
         }
+
+        private void Update()
+        {
+            if (mActions.Count > 0)
+            {
+                mActions.Dequeue()();
+            }
+        }
+
 
         void OnDestroy()
         {
