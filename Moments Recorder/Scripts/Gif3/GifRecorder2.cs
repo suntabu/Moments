@@ -328,7 +328,7 @@ namespace Gif3
 
 
                     mCurrentRecordFrame++;
-                    Debug.Log(mCurrentRecordFrame + "   -> " + Worker.mCurrentEncodeFrame + "   " + m_MaxFrameCount);
+//                    Debug.Log(mCurrentRecordFrame + "   -> " + Worker.mCurrentEncodeFrame + "   " + m_MaxFrameCount);
                 }
                 else
 
