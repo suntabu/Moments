@@ -35,7 +35,7 @@ namespace Gif3
             m_Encoder.Start(m_FilePath);
             Stopwatch sw = Stopwatch.StartNew();
 
-            while (mCurrentEncodeFrame < m_MaxFrameCount)
+            while (mCurrentEncodeFrame < m_MaxFrameCount || m_MaxFrameCount == 0)
             {
                 while (m_Frames.Count > 0)
                 {

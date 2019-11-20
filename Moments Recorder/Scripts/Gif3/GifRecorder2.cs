@@ -110,7 +110,6 @@ namespace Gif3
         }
 
 
-
         /// <summary>
         /// The folder to save the gif to. No trailing slash.
         /// </summary>
@@ -146,14 +145,15 @@ namespace Gif3
         #region Internal fields
 
         int m_MaxFrameCount;
-        float m_Time;
+        float m_Time, m_RecordTime;
         float m_TimePerFrame;
         Queue<GifFrame> m_Frames;
         Moments.ReflectionUtils<GifRecorder2> m_ReflectionUtils;
         private RenderTexture m_TempRt;
         private Texture2D m_TempTex;
-        private int mCurrentRecordFrame, mCurrentEncodeFrame;
+        private int mCurrentRecordFrame;
         private Queue<Action> mActions = new Queue<Action>();
+
         #endregion
 
         #region Public API
@@ -172,7 +172,8 @@ namespace Gif3
         /// 256 colors allowed by the GIF specification). Lower values (minimum = 1) produce better
         /// colors, but slow processing significantly. Higher values will speed up the quantization
         /// pass at the cost of lower image quality (maximum = 100).</param>
-        public void Setup(bool autoAspect, int width, int height, int fps, float bufferSize, int repeat, int quality, bool needInit)
+        public void Setup(bool autoAspect, int width, int height, int fps, float bufferSize, int repeat, int quality,
+            bool needInit)
         {
             if (State == RecorderState.Recording)
             {
@@ -218,6 +219,17 @@ namespace Gif3
             }
 
             State = RecorderState.Recording;
+        }
+        
+        public void StopRecord()
+        {
+            if (State == RecorderState.Recorded)
+            {
+                Debug.LogWarning("Attempting to resume recording during the pre-processing step.");
+                return;
+            }
+            State = RecorderState.Recorded;
+            Worker.m_MaxFrameCount = mCurrentRecordFrame;
         }
 
         /// <summary>
@@ -280,48 +292,51 @@ namespace Gif3
             }
 
             m_Time += Time.unscaledDeltaTime;
-
-            if (m_Time >= m_TimePerFrame)
+//            m_RecordTime += Time.unscaledDeltaTime;
+//            Debug.LogError(m_RecordTime +"   ->  " + m_BufferSize + "  " + m_TimePerFrame);
+//            if (m_RecordTime <= m_BufferSize)
             {
-                m_Time -= m_TimePerFrame;
-
-                if (m_TempRt == null)
+                if (m_Time >= m_TimePerFrame)
                 {
-                    if (mRtWidth == 0 || mRtHeight == 0)
+                    m_Time -= m_TimePerFrame;
+
+                    if (m_TempRt == null)
                     {
-                        mRtWidth = m_Width;
-                        mRtHeight = m_Height;
+                        if (mRtWidth == 0 || mRtHeight == 0)
+                        {
+                            mRtWidth = m_Width;
+                            mRtHeight = m_Height;
+                        }
+
+                        m_TempRt = new RenderTexture((int) mRtWidth, (int) mRtHeight, 0, RenderTextureFormat.ARGB32)
+                        {
+                            wrapMode = TextureWrapMode.Clamp,
+                            filterMode = FilterMode.Bilinear,
+                            anisoLevel = 0
+                        };
                     }
 
-                    m_TempRt = new RenderTexture((int) mRtWidth, (int) mRtHeight, 0, RenderTextureFormat.ARGB32)
+
+                    Graphics.Blit(source, m_TempRt);
+
+                    RenderTexture.active = null;
+                    GifFrame frame = ToGifFrame(m_TempRt, TempTex);
+                    lock (m_Frames)
                     {
-                        wrapMode = TextureWrapMode.Clamp,
-                        filterMode = FilterMode.Bilinear,
-                        anisoLevel = 0
-                    };
+                        m_Frames.Enqueue(frame);
+                    }
+
+
+                    mCurrentRecordFrame++;
+                    Debug.Log(mCurrentRecordFrame + "   -> " + Worker.mCurrentEncodeFrame + "   " + m_MaxFrameCount);
                 }
+                else
 
-
-                Graphics.Blit(source, m_TempRt);
-
-                RenderTexture.active = null;
-                GifFrame frame = ToGifFrame(m_TempRt, TempTex);
-                lock (m_Frames)
-                {
-                    m_Frames.Enqueue(frame);
-                }
-
-
-                mCurrentRecordFrame++;
-                if (mCurrentRecordFrame >= m_MaxFrameCount)
-                {
-                    State = RecorderState.Recorded;
-                }
+                    Graphics.Blit(source, destination);
             }
-            else
-
-                Graphics.Blit(source, destination);
         }
+
+    
 
         #endregion
 
@@ -348,7 +363,7 @@ namespace Gif3
 #endif
             }
         }
-        
+
         public void Init(float duration)
         {
             State = RecorderState.None;
