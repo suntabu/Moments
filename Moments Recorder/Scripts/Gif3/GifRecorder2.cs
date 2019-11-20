@@ -316,8 +316,6 @@ namespace Gif3
                 if (mCurrentRecordFrame > m_MaxFrameCount)
                 {
                     State = RecorderState.Recorded;
-
-                    OnFileSaved();
                 }
             }
             else
