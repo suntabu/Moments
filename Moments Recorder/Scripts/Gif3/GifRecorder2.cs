@@ -308,7 +308,7 @@ namespace Gif3
                             mRtHeight = m_Height;
                         }
 
-                        m_TempRt = new RenderTexture((int) mRtWidth, (int) mRtHeight, 0, RenderTextureFormat.ARGB32)
+                        m_TempRt = new RenderTexture((int) source.width, (int) source.height, 0, RenderTextureFormat.ARGB32)
                         {
                             wrapMode = TextureWrapMode.Clamp,
                             filterMode = FilterMode.Bilinear,
@@ -449,7 +449,9 @@ namespace Gif3
             {
                 if (m_TempTex == null)
                 {
-                    m_TempTex = new Texture2D(m_Width, m_Height, TextureFormat.RGB24, false)
+                    Debug.LogError("+++++++++++ " + m_Width + ", " + m_Height + ", " + m_TempRt.width + ", " +
+                              m_TempRt.height);
+                    m_TempTex = new Texture2D((int)mRtWidth, (int)mRtHeight, TextureFormat.RGB24, false)
                     {
                         hideFlags = HideFlags.HideAndDontSave,
                         wrapMode = TextureWrapMode.Clamp,
@@ -468,7 +470,7 @@ namespace Gif3
         GifFrame ToGifFrame(RenderTexture source, Texture2D target)
         {
             RenderTexture.active = source;
-            target.ReadPixels(new Rect(mRecordX, mRecordY, source.width, source.height), 0, 0);
+            target.ReadPixels(new Rect(mRecordX, mRecordY, mRtWidth, mRtHeight), 0, 0);
 //            target.Apply();
             RenderTexture.active = null;
 
