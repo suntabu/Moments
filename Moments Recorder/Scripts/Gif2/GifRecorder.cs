@@ -26,17 +26,17 @@ namespace Gif2
 
         [SerializeField, Moments.Min(8)] int m_Width = 320;
 
-        [SerializeField, Min(8)] int m_Height = 200;
+        [SerializeField, Moments.Min(8)] int m_Height = 200;
 
         [SerializeField] bool m_AutoAspect = true;
 
         [SerializeField, Range(1, 30)] int m_FramePerSecond = 15;
 
-        [SerializeField, Min(-1)] int m_Repeat = 0;
+        [SerializeField, Moments.Min(-1)] int m_Repeat = 0;
 
         [SerializeField, Range(1, 100)] int m_Quality = 15;
 
-        [SerializeField, Min(0.1f)] float m_BufferSize = 3f;
+        [SerializeField, Moments.Min(0.1f)] float m_BufferSize = 3f;
 
         #endregion
 

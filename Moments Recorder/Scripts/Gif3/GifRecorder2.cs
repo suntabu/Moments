@@ -28,17 +28,19 @@ namespace Gif3
 
         [SerializeField, Moments.Min(8)] int m_Width = 320;
 
-        [SerializeField, Min(8)] int m_Height = 200;
+        [SerializeField, Moments.Min(8)] int m_Height = 200;
 
         [SerializeField] bool m_AutoAspect = true;
 
         [SerializeField, Range(1, 30)] int m_FramePerSecond = 15;
 
-        [SerializeField, Min(-1)] int m_Repeat = 0;
+        [SerializeField, Moments.Min(-1)] int m_Repeat = 0;
 
         [SerializeField, Range(1, 100)] int m_Quality = 15;
 
-        [SerializeField, Min(0.1f)] float m_BufferSize = 3f;
+        [SerializeField, Moments.Min(0.1f)] float m_BufferSize = 3f;
+
+        [SerializeField, Moments.Min(0.1f)] float m_ResolutionScale = 0.5f;
 
         #endregion
 
@@ -220,7 +222,7 @@ namespace Gif3
 
             State = RecorderState.Recording;
         }
-        
+
         public void StopRecord()
         {
             if (State == RecorderState.Recorded)
@@ -228,6 +230,7 @@ namespace Gif3
                 Debug.LogWarning("Attempting to resume recording during the pre-processing step.");
                 return;
             }
+
             State = RecorderState.Recorded;
             Worker.m_MaxFrameCount = mCurrentRecordFrame;
         }
@@ -283,8 +286,45 @@ namespace Gif3
             FlushMemory();
         }
 
+#if UNITY_EDITOR
+        public Color gizmosColor = Color.yellow;
+#endif
+
+#if UNITY_EDITOR
+        public void OnDrawGizmos()
+        {
+            var record_camera = GetComponent<Camera>();
+            var cy = record_camera.orthographicSize * 2;
+            var cx = cy * mRenderWidth * 1f / mRenderHeight;
+
+            var scale = cy * 100f / mRenderHeight * 0.01f;
+
+            float w = m_Width * scale;
+            float h = m_Height * scale;
+            float x = mRecordX;
+            float y = mRecordY;
+
+
+            Debug.Log("===>" + Screen.width + "x" + Screen.height + "   " + Screen.currentResolution);
+            var centerX = -cx * 0.5f + (x * 0.01f + w * 0.5f);
+            var centerY = -cy * 0.5f + (y * 0.01f + h * 0.5f);
+
+            var center = new Vector2(centerX, centerY);
+
+
+            Gizmos.color = gizmosColor;
+            Matrix4x4 oldGizmosMatrix = Gizmos.matrix;
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.DrawWireCube(center, new Vector3(w, h, 0.1f));
+            Gizmos.matrix = oldGizmosMatrix;
+        }
+
+#endif
+
         void OnRenderImage(RenderTexture source, RenderTexture destination)
         {
+            mRenderWidth = source.width;
+            mRenderHeight = source.height;
             if (State != RecorderState.Recording)
             {
                 Graphics.Blit(source, destination);
@@ -292,51 +332,41 @@ namespace Gif3
             }
 
             m_Time += Time.unscaledDeltaTime;
-//            m_RecordTime += Time.unscaledDeltaTime;
-//            Debug.LogError(m_RecordTime +"   ->  " + m_BufferSize + "  " + m_TimePerFrame);
-//            if (m_RecordTime <= m_BufferSize)
+            if (m_Time >= m_TimePerFrame)
             {
-                if (m_Time >= m_TimePerFrame)
+                m_Time -= m_TimePerFrame;
+
+                if (m_TempRt == null)
                 {
-                    m_Time -= m_TimePerFrame;
-
-                    if (m_TempRt == null)
+                    m_TempRt = new RenderTexture((int) (source.width * m_ResolutionScale),
+                        (int) (source.height * m_ResolutionScale), 0,
+                        RenderTextureFormat.ARGB32)
                     {
-                        if (mRtWidth == 0 || mRtHeight == 0)
-                        {
-                            mRtWidth = m_Width;
-                            mRtHeight = m_Height;
-                        }
-
-                        m_TempRt = new RenderTexture((int) mRtWidth, (int) mRtHeight, 0, RenderTextureFormat.ARGB32)
-                        {
-                            wrapMode = TextureWrapMode.Clamp,
-                            filterMode = FilterMode.Bilinear,
-                            anisoLevel = 0
-                        };
-                    }
-
-
-                    Graphics.Blit(source, m_TempRt);
-
-                    RenderTexture.active = null;
-                    GifFrame frame = ToGifFrame(m_TempRt, TempTex);
-                    lock (m_Frames)
-                    {
-                        m_Frames.Enqueue(frame);
-                    }
-
-
-                    mCurrentRecordFrame++;
-                    Debug.Log(mCurrentRecordFrame + "   -> " + Worker.mCurrentEncodeFrame + "   " + m_MaxFrameCount);
+                        wrapMode = TextureWrapMode.Clamp,
+                        filterMode = FilterMode.Bilinear,
+                        anisoLevel = 0
+                    };
                 }
-                else
 
-                    Graphics.Blit(source, destination);
+                Debug.Log("--->" + source.width + "x" + source.height);
+              
+                Graphics.Blit(source, m_TempRt);
+
+                RenderTexture.active = null;
+                GifFrame frame = ToGifFrame(m_TempRt, TempTex);
+                lock (m_Frames)
+                {
+                    m_Frames.Enqueue(frame);
+                }
+
+
+                mCurrentRecordFrame++;
+                Debug.Log(mCurrentRecordFrame + "   -> " + Worker.mCurrentEncodeFrame + "   " + m_MaxFrameCount);
             }
-        }
+            else
 
-    
+                Graphics.Blit(source, destination);
+        }
 
         #endregion
 
@@ -400,7 +430,7 @@ namespace Gif3
             return new Vector2(m_Width, m_Height);
         }
 
-        private float mRecordX, mRecordY, mRtWidth, mRtHeight;
+        private float mRecordX, mRecordY, mRenderWidth, mRenderHeight;
 
         public void SetRecordPosition(float x, float y)
         {
@@ -408,10 +438,10 @@ namespace Gif3
             mRecordY = y;
         }
 
-        public void SetRenderTextureSize(float width, float height)
+        public void SetRecordAreaSize(float width, float height)
         {
-            mRtWidth = width;
-            mRtHeight = height;
+            m_Width = (int) width;
+            m_Height = (int) height;
         }
 
         public void SetFilePath(string filename)
@@ -449,7 +479,8 @@ namespace Gif3
             {
                 if (m_TempTex == null)
                 {
-                    m_TempTex = new Texture2D(m_Width, m_Height, TextureFormat.RGB24, false)
+                    m_TempTex = new Texture2D((int) (m_Width * m_ResolutionScale),
+                        (int) (m_Height * m_ResolutionScale), TextureFormat.RGB24, false)
                     {
                         hideFlags = HideFlags.HideAndDontSave,
                         wrapMode = TextureWrapMode.Clamp,
@@ -468,7 +499,9 @@ namespace Gif3
         GifFrame ToGifFrame(RenderTexture source, Texture2D target)
         {
             RenderTexture.active = source;
-            target.ReadPixels(new Rect(mRecordX, mRecordY, source.width, source.height), 0, 0);
+            target.ReadPixels(
+                new Rect(mRecordX * m_ResolutionScale, mRecordY * m_ResolutionScale, target.width, target.height), 0,
+                0);
 //            target.Apply();
             RenderTexture.active = null;
 

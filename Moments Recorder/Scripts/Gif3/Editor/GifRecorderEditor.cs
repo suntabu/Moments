@@ -39,6 +39,8 @@ namespace MomentsEditor
 		SerializedProperty m_Repeat;
 		SerializedProperty m_Quality;
 		SerializedProperty m_BufferSize;
+		private SerializedProperty m_ResolutionScale;
+		private SerializedProperty gizmosColor;
 
 		void OnEnable()
 		{
@@ -49,6 +51,8 @@ namespace MomentsEditor
 			m_Repeat = serializedObject.FindProperty("m_Repeat");
 			m_Quality = serializedObject.FindProperty("m_Quality");
 			m_BufferSize = serializedObject.FindProperty("m_BufferSize");
+			m_ResolutionScale = serializedObject.FindProperty("m_ResolutionScale");
+			gizmosColor = serializedObject.FindProperty("gizmosColor");
 		}
 
 		public override void OnInspectorGUI()
@@ -76,7 +80,8 @@ namespace MomentsEditor
 			EditorGUILayout.PropertyField(m_Repeat, new GUIContent("Repeat", "-1 to disable, 0 to loop indefinitely, >0 to loop a set number of time."));
 			EditorGUILayout.PropertyField(m_FramePerSecond, new GUIContent("Frames Per Second", "The number of frames per second the gif will run at."));
 			EditorGUILayout.PropertyField(m_BufferSize, new GUIContent("Record Time", "The amount of time (in seconds) to record to memory."));
-
+			EditorGUILayout.PropertyField(m_ResolutionScale, new GUIContent("Record Resolution Scale", "The amount of scale to downsample resolution for reducing gif size."));
+			EditorGUILayout.PropertyField(gizmosColor, new GUIContent("Record Area Gizmos Color", "The color of  gizmos"));
 			serializedObject.ApplyModifiedProperties();
 
 			GUI.enabled = true;
