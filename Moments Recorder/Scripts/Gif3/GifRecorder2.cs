@@ -306,8 +306,8 @@ namespace Gif3
 
 
             Debug.Log("===>" + Screen.width + "x" + Screen.height + "   " + Screen.currentResolution);
-            var centerX = -cx * 0.5f + (x * 0.01f + w * 0.5f);
-            var centerY = -cy * 0.5f + (y * 0.01f + h * 0.5f);
+            var centerX = x - w * 0.5f;
+            var centerY = y - h * 0.5f;
 
             var center = new Vector2(centerX, centerY);
 
@@ -349,7 +349,7 @@ namespace Gif3
                 }
 
                 Debug.Log("--->" + source.width + "x" + source.height);
-              
+
                 Graphics.Blit(source, m_TempRt);
 
                 RenderTexture.active = null;
