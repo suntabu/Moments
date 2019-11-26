@@ -506,7 +506,7 @@ namespace Gif3
 ////            target.Apply();
 //            RenderTexture.active = null;
 
-            Texture2D target = RecordGIF.CutTexture(source, m_Width, m_Height);
+            Texture2D target = RecordGIF.CutTexture(source);
 
             return new GifFrame() {Width = target.width, Height = target.height, Data = target.GetPixels32()};
         }
