@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Gif2;
 using Moments.Encoder;
 using UnityObject = UnityEngine.Object;
 using Min = Moments.MinAttribute;
@@ -338,8 +339,8 @@ namespace Gif3
 
                 if (m_TempRt == null)
                 {
-                    m_TempRt = new RenderTexture((int) (source.width * m_ResolutionScale),
-                        (int) (source.height * m_ResolutionScale), 0,
+                    m_TempRt = new RenderTexture(source.width,
+                        source.height, 0,
                         RenderTextureFormat.ARGB32)
                     {
                         wrapMode = TextureWrapMode.Clamp,
@@ -353,7 +354,7 @@ namespace Gif3
                 Graphics.Blit(source, m_TempRt);
 
                 RenderTexture.active = null;
-                GifFrame frame = ToGifFrame(m_TempRt, TempTex);
+                GifFrame frame = ToGifFrame(m_TempRt);
                 lock (m_Frames)
                 {
                     m_Frames.Enqueue(frame);
@@ -496,14 +497,16 @@ namespace Gif3
 
         // Converts a RenderTexture to a GifFrame
         // Should be fast enough for low-res textures but will tank the framerate at higher res
-        GifFrame ToGifFrame(RenderTexture source, Texture2D target)
+        GifFrame ToGifFrame(RenderTexture source)
         {
-            RenderTexture.active = source;
-            target.ReadPixels(
-                new Rect(mRecordX * m_ResolutionScale, mRecordY * m_ResolutionScale, target.width, target.height), 0,
-                0);
-//            target.Apply();
-            RenderTexture.active = null;
+//            RenderTexture.active = source;
+//            target.ReadPixels(
+//                new Rect(mRecordX * m_ResolutionScale, mRecordY * m_ResolutionScale, target.width, target.height), 0,
+//                0);
+////            target.Apply();
+//            RenderTexture.active = null;
+
+            Texture2D target = RecordGIF.CutTexture(source);
 
             return new GifFrame() {Width = target.width, Height = target.height, Data = target.GetPixels32()};
         }
