@@ -306,19 +306,17 @@ namespace Gif3
 
 
             Debug.Log("===>" + Screen.width + "x" + Screen.height + "   " + Screen.currentResolution);
-//            var centerX = -cx * 0.5f + (x * 0.01f + w * 0.5f);
-//            var centerY = -cy * 0.5f + (y * 0.01f + h * 0.5f);
-
-            var centerX = x - w * 0.5f;
-            var centerY = y - h * 0.5f;
-
+ 
+            var pos = record_camera.ScreenToWorldPoint(new Vector3(x + m_Width *0.5f,y + m_Height * 0.5f));
+            var centerX = pos.x;
+            var centerY = pos.y;
             var center = new Vector2(centerX, centerY);
 
 
             Gizmos.color = gizmosColor;
             Matrix4x4 oldGizmosMatrix = Gizmos.matrix;
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.DrawWireCube(center, new Vector3(w, h, 0.1f));
+            Gizmos.DrawCube(center, new Vector3(w, h, 0.1f));
             Gizmos.matrix = oldGizmosMatrix;
         }
 
@@ -352,7 +350,7 @@ namespace Gif3
                 }
 
                 Debug.Log("--->" + source.width + "x" + source.height);
-              
+
                 Graphics.Blit(source, m_TempRt);
 
                 RenderTexture.active = null;
