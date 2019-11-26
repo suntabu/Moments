@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Gif2;
 using Moments.Encoder;
 using UnityObject = UnityEngine.Object;
 using Min = Moments.MinAttribute;
@@ -307,6 +306,9 @@ namespace Gif3
 
 
             Debug.Log("===>" + Screen.width + "x" + Screen.height + "   " + Screen.currentResolution);
+//            var centerX = -cx * 0.5f + (x * 0.01f + w * 0.5f);
+//            var centerY = -cy * 0.5f + (y * 0.01f + h * 0.5f);
+
             var centerX = x - w * 0.5f;
             var centerY = y - h * 0.5f;
 
@@ -339,8 +341,8 @@ namespace Gif3
 
                 if (m_TempRt == null)
                 {
-                    m_TempRt = new RenderTexture(source.width,
-                        source.height, 0,
+                    m_TempRt = new RenderTexture((int) (source.width * m_ResolutionScale),
+                        (int) (source.height * m_ResolutionScale), 0,
                         RenderTextureFormat.ARGB32)
                     {
                         wrapMode = TextureWrapMode.Clamp,
@@ -350,11 +352,11 @@ namespace Gif3
                 }
 
                 Debug.Log("--->" + source.width + "x" + source.height);
-
+              
                 Graphics.Blit(source, m_TempRt);
 
                 RenderTexture.active = null;
-                GifFrame frame = ToGifFrame(m_TempRt);
+                GifFrame frame = ToGifFrame(m_TempRt, TempTex);
                 lock (m_Frames)
                 {
                     m_Frames.Enqueue(frame);
@@ -497,16 +499,14 @@ namespace Gif3
 
         // Converts a RenderTexture to a GifFrame
         // Should be fast enough for low-res textures but will tank the framerate at higher res
-        GifFrame ToGifFrame(RenderTexture source)
+        GifFrame ToGifFrame(RenderTexture source, Texture2D target)
         {
-//            RenderTexture.active = source;
-//            target.ReadPixels(
-//                new Rect(mRecordX * m_ResolutionScale, mRecordY * m_ResolutionScale, target.width, target.height), 0,
-//                0);
-////            target.Apply();
-//            RenderTexture.active = null;
-
-            Texture2D target = RecordGIF.CutTexture(source);
+            RenderTexture.active = source;
+            target.ReadPixels(
+                new Rect(mRecordX * m_ResolutionScale, mRecordY * m_ResolutionScale, target.width, target.height), 0,
+                0);
+//            target.Apply();
+            RenderTexture.active = null;
 
             return new GifFrame() {Width = target.width, Height = target.height, Data = target.GetPixels32()};
         }
