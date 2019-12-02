@@ -349,7 +349,7 @@ namespace Gif3
                     };
                 }
 
-                Debug.Log("--->" + source.width + "x" + source.height);
+                //Debug.Log("--->" + source.width + "x" + source.height);
 
                 Graphics.Blit(source, m_TempRt);
 
