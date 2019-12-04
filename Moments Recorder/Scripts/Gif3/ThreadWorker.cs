@@ -10,7 +10,7 @@ namespace Gif3
     {
         static int workerId = 1;
 
-        Thread m_Thread;
+//        Thread m_Thread;
 
         internal Queue<GifFrame> m_Frames;
         internal GifEncoder m_Encoder;
@@ -21,16 +21,18 @@ namespace Gif3
 
         internal ThreadWorker(ThreadPriority priority)
         {
-            m_Thread = new Thread(Run);
-            m_Thread.Priority = priority;
+//            m_Thread = new Thread(Run);
+//            m_Thread.Priority = priority;
         }
 
         internal void Start()
         {
-            m_Thread.Start();
+//            m_Thread.Start();
+
+            ThreadPool.QueueUserWorkItem(Run);
         }
 
-        void Run()
+        void Run(object state)
         {
             m_Encoder.Start(m_FilePath);
             Stopwatch sw = Stopwatch.StartNew();
